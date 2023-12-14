@@ -3,8 +3,8 @@ from scipy.integrate import odeint
 import numpy as np
 from variables import *
 from opcua import Client
-client = Client(OPC_ADDR)
 
+client = Client(OPC_ADDR)
 client.connect()
 
 def motor_eq(y, t, velocidade, tau_L):

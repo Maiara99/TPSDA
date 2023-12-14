@@ -7,24 +7,23 @@ setpoint = "0"
 setpoint_lock = threading.Lock()
 
 def velocimetro(valor):
-    # Verificar se o valor está no intervalo permitido
-    if 0 <= valor <= 100:
-        # Calcular a quantidade de underlines a serem substituídos por #
-        num_underlines = round(valor / 100 * 10)
+    if valor >= 100:
+        valor = 100
 
-        # Formatar a string
-        string_formatada = f"[{'#' * num_underlines}{'_' * (10 - num_underlines)}] {valor}"
-
-        # Imprimir a string formatada
-        print(string_formatada)
-    else:
-        print("Alerta, velocidade muito alta")
+    num_underlines = round(valor / 100 * 10)
+    string_formatada = f"[{'#' * num_underlines}{'_' * (10 - num_underlines)}] {valor}, set-point: {setpoint}"
+    if valor < 100 and valor > 90:
+        print("Alerta Velocidade muito alta")
+    elif valor == 100:
+        print("Limite de velocidade atingido")
+    print(string_formatada)
+    with open('data.txt', 'a') as file:
+        print(string_formatada, file=file)
 
 def controle_loop(socket):
     while True:
-        velocidade = socket.recv(TCP_PORT)
-        velocidade = round(float(velocidade))
-        velocimetro(velocidade)
+        # velocidade = socket.recv(TCP_PORT)
+        velocimetro(round(float(socket.recv(TCP_PORT))))
         time.sleep(0.5)
 
 def aguardar_input():
