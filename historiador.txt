@@ -1,7 +1,0 @@
---------------------------------------
-            HISTORICO DA
-     TELA DE CONTROLE DO TANQUE
---------------------------------------
-Altura desejada: 12 metros
---------------------------------------
-Dados do controle realizado:
