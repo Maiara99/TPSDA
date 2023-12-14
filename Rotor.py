@@ -1,7 +1,7 @@
 import time
 from scipy.integrate import odeint
 import numpy as np
-from variables import *
+from Variables import *
 from opcua import Client
 
 client = Client(OPC_ADDR)

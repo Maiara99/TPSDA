@@ -1,7 +1,7 @@
 import socket
 import threading
 import time
-from variables import TCP_PORT, OPC_ADDR, TCP_ADDR
+from Variables import TCP_PORT, OPC_ADDR, TCP_ADDR
 
 setpoint = "0"
 setpoint_lock = threading.Lock()

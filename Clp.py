@@ -2,7 +2,7 @@ import threading
 import time
 import socket
 from opcua import Client
-from variables import *
+from Variables import *
 mutex = threading.Lock()
 velocidadeRotor = 0
 def controlador(stop_event):
