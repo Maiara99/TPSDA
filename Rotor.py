@@ -1,43 +1,40 @@
-import numpy as np
-from opcua import Client
 import time
-from variables import OPC_ADDR, TCP_ADDR, TCP_PORT
-
-def Motor(u, tau0, w0):
-    # Definição da equação a diferenças
-    tauL = np.random.uniform(0, 10)
-    deltat=0.1
-    tau_next = tau0 + deltat * (u - w0 - tau0)
-    w_next = w0 + deltat * (tau0 - tauL - w0)
-
-    # Retornar a velocidade de rotação
-    if np.isnan(tau_next) or np.isnan(w_next):
-        # Verificar por NaN e tratar a situação
-        return 0, tau0, w0
-
-    wm_next = (tau_next - tau0) / deltat
-    return wm_next, tau_next, w_next
-
-##################
-# Cria o client
+from scipy.integrate import odeint
+import numpy as np
+from variables import *
+from opcua import Client
 client = Client(OPC_ADDR)
+
 client.connect()
 
-##################
-node_h = client.get_node("ns=3;i=1008")
-node_q_in = client.get_node("ns=3;i=1009")
-node_h_ref = client.get_node("ns=3;i=1010")
+def motor_eq(y, t, velocidade, tau_L):
+    tau_motor, omega_m = y
 
-# Condição inicial para a simulação do tanque
-tau0 = 0
-w0 = 0
+    dtau_motor = (Km * velocidade - (Km * Kb) * omega_m - LA * tau_motor) / RA
+    domega_m = (tau_motor - B * omega_m - tau_L) / Jm
+    return [dtau_motor, domega_m]
 
-while True:
-    href = node_h_ref.get_value()
-    # Valor de controle em malha aberta (ajuste conforme necessário)
-    control = href
+def integrar_EDO(y, t, velocidade, tau_L, tempo_passo=0.1):
+    sol = odeint(motor_eq, y, [t, t + tempo_passo], args=(velocidade, tau_L))
+    return sol[1, :]
 
-    wm, tau0, w0 = Motor(control, tau0, w0)
+tempo = 0.0
+y_atual = [0.0, 0.0] 
+erro_integral = 0.0;
+velocidade_proximo_instante = 0
+velocidade_controle = 0
+# Realizando integração em tempo real
+while True:  # Por exemplo, 10 iterações
+    referencia = node_referencia.get_value()
+    erro = referencia - velocidade_proximo_instante;
+    erro_integral += erro;
+    
+    velocidade_controle = erro*Ki + Kp;
 
-    node_q_in.set_value(control)
-    node_h.set_value(wm)
+    y_proximo = integrar_EDO(y_atual, tempo, velocidade_controle, np.random.uniform(0, 1))
+    velocidade_proximo_instante = y_proximo[1];
+    
+    tempo += 0.1  # Ajuste conforme necessário
+    y_atual = y_proximo
+    node_velocidade.set_value(velocidade_proximo_instante)
+
